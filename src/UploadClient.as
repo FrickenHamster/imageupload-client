@@ -5,8 +5,7 @@
  * Time: 10:42 PM
  *
  */
-package client
-{
+package {
 import flash.events.Event;
 import flash.events.IOErrorEvent;
 import flash.events.ProgressEvent;
@@ -26,6 +25,10 @@ public class UploadClient
 	private var packetSize:int;
 	private var packetBuffer:ByteArray;
 	private var buffering:Boolean;
+	
+	
+	public static const PING:int = 0;
+	public static const IMAGE_LINK:int = 1;
 	
 	public function UploadClient()
 	{
@@ -59,9 +62,61 @@ public class UploadClient
 		
 	}
 	
-	private function readPacket(byteArray:ByteArray):void
+	private function readPacket(packet:ByteArray):void
 	{
-		
+		var id:int = packet.readByte();
+		switch (id)
+		{
+			case PING:
+				debug("recieved ping");
+				break;
+		}
+	}
+	
+	public function sendPing():void
+	{
+		try
+		{
+			var byteArray:ByteArray = new ByteArray();
+			byteArray.writeByte(PING);
+			sendPacket(byteArray);
+		}
+		catch(e:Error)
+		{
+			debug("Send Error");
+		}
+	}
+	
+	public function sendImageLink(link:String):void
+	{
+		try
+		{
+			var ba:ByteArray = new ByteArray();
+
+			ba.writeByte( IMAGE_LINK );
+			ba.writeUTF( link );
+			sendPacket( ba );
+			debug( "sent link" + link  + " size:" + ba.length );
+		}
+		catch (e:Error )
+		{
+			debug( "send name error:" + e );
+		}
+	}
+
+	public function sendPacket( ba:ByteArray )
+	{
+		try
+		{
+			socket.writeShort( ba.length );
+			socket.writeBytes( ba );
+			socket.flush();
+			debug( "sent bytearray length:" + ba.length );
+		}
+		catch ( e:Error )
+		{
+			debug( "send bytearray error:" + e );
+		}
 	}
 
 	private function socketConnect(event:Event):void {

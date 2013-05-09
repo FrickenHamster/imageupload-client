@@ -7,7 +7,7 @@
  */
 package
 {
-import client.UploadClient;
+import UploadClient;
 
 import flash.display.Bitmap;
 import flash.display.BitmapData;
@@ -33,18 +33,28 @@ public class UploadClientMain extends MovieClip
 	
 	private var PreviewBitmap:Bitmap;
 	private var PreviewCanvas:BitmapData;
+
+	private var loader:Loader = new Loader();
 	
 	private var client:UploadClient;
 
-
-	private var loader:Loader = new Loader();
-
 	private var imageLinkBox:TextField;
+	
+	private var currentLink:String;
+	private var canUpload:Boolean;
 	
 	public function UploadClientMain()
 	{
 
 		Security.loadPolicyFile("xmlsocket://" + HOST_ADDRESS + ":" + POLICY_PORT);
+		
+		canUpload = false;
+		
+		var instructBox:TextField = new TextField();
+		instructBox.x = 50;
+		instructBox.y = 10;
+		instructBox.type = TextFieldType.DYNAMIC;
+		instructBox.text = "Press enter to preview image. Press U to upload. Please no Goatse or Penises";
 		
 		imageLinkBox = new TextField();
 		
@@ -82,7 +92,7 @@ public class UploadClientMain extends MovieClip
 		loader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, onProgressStatus);
 		loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderReady);
 		loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, loadError);
-		
+		currentLink = imageLinkBox.text;
 		var fileRequest:URLRequest = new URLRequest(imageLinkBox.text);
 		loader.load(fileRequest);
 	}
@@ -98,6 +108,8 @@ public class UploadClientMain extends MovieClip
 		loader.height = 600;
 		loader.x = 50;
 		loader.y = 50;
+		canUpload = true;
+		
 		addChild(loader);
 	}
 	
@@ -115,6 +127,14 @@ public class UploadClientMain extends MovieClip
 				loadPreview();
 				break;
 			
+			case (Keyboard.P):
+				client.sendPing();
+				break;
+			
+			case Keyboard.U:
+				if (canUpload)
+					client.sendImageLink(currentLink);
+				break;
 		}
 	}
 }
